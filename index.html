@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MSL Business Intelligence Dashboard (USD)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #111827; color: #f3f4f6; }
+        .card { background-color: #1f2937; border: 1px solid #374151; border-radius: 1rem; }
+        .btn-primary { background-color: #3b82f6; transition: background-color 0.3s ease, transform 0.2s ease; }
+        .btn-primary:hover { background-color: #2563eb; transform: translateY(-2px); }
+        .btn-secondary { background-color: #4b5563; transition: background-color 0.3s ease; }
+        .btn-secondary:hover { background-color: #374151; }
+        .input-field { background-color: #374151; border: 1px solid #4b5563; color: #f3f4f6; }
+        .stat-card { background-color: #374151; }
+        .blinking-text { animation: blinker 1.5s linear infinite; }
+        @keyframes blinker { 50% { opacity: 0.6; } }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4 lg:p-8">
+    <div class="w-full max-w-7xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold tracking-tight text-white sm:text-5xl">MSL Business Intelligence Dashboard</h1>
+            <p class="mt-4 text-lg text-gray-400">The "Proof of Results" Dashboard for YouTube's Next Commerce Engine</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            <!-- Main Simulation Panel -->
+            <div class="lg:col-span-3 card p-6">
+                <h2 class="text-2xl font-semibold mb-6">Real-time Simulation</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="stat-card p-3 rounded-lg"><h3 class="text-sm text-gray-400">Participants</h3><p id="currentParticipants" class="text-2xl font-bold">0</p></div>
+                    <div class="stat-card p-3 rounded-lg"><h3 class="text-sm text-gray-400">Time Left</h3><p id="timer" class="text-2xl font-bold">0s</p></div>
+                    <div class="stat-card p-3 rounded-lg"><h3 class="text-sm text-gray-400">Current Price</h3><p id="currentPrice" class="text-2xl font-bold">$0.00</p></div>
+                    <div class="stat-card p-3 rounded-lg bg-teal-800/50"><h3 class="text-sm text-teal-300">Cumulative Revenue</h3><p id="platformRevenue" class="text-2xl font-bold text-teal-300">$0.00</p></div>
+                </div>
+                <div class="mb-6 h-80"><canvas id="mainChart"></canvas></div>
+                <button id="joinAuction" class="w-full text-white font-bold py-3 px-6 rounded-lg btn-primary text-lg disabled:opacity-50" disabled>Join Auction</button>
+                 <div id="finalSaleMessage" class="mt-2 text-center text-lg text-teal-400 font-semibold hidden h-8 blinking-text"></div>
+                <div id="auctionStatus" class="mt-2 text-center text-lg font-medium p-3 bg-gray-800 rounded-lg">Waiting...</div>
+            </div>
+
+            <!-- BI Dashboard Panel -->
+            <div class="lg:col-span-2 card p-6">
+                 <div class="h-full flex flex-col">
+                    <h2 class="text-2xl font-semibold mb-6 border-b border-gray-600 pb-3">Simulation Setup</h2>
+                     <div class="flex-grow">
+                        <div class="grid grid-cols-2 gap-4 text-sm mb-6">
+                            <div><label for="startPrice">Start Price ($)</label><input type="number" id="startPrice" class="mt-1 w-full rounded input-field p-2" value="100"></div>
+                            <div><label for="minPrice">Min Price ($)</label><input type="number" id="minPrice" class="mt-1 w-full rounded input-field p-2" value="20"></div>
+                            <div><label for="participantGoal">Participant Goal</label><input type="number" id="participantGoal" class="mt-1 w-full rounded input-field p-2" value="100"></div>
+                            <div><label for="auctionDuration">Duration (sec)</label><input type="number" id="auctionDuration" class="mt-1 w-full rounded input-field p-2" value="120"></div>
+                        </div>
+                         <div>
+                             <label for="platformFee" class="flex justify-between text-sm"><span>Platform Fee (%)</span><span id="platformFeeValue" class="font-semibold text-blue-300">5.0%</span></label>
+                             <input type="range" id="platformFee" min="1" max="15" step="0.5" value="5" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                         </div>
+                    </div>
+                    
+                    <div class="mt-6 pt-6 border-t border-gray-600">
+                        <h3 class="text-2xl font-semibold text-teal-300 mb-4">Final Results Analysis</h3>
+                        <div class="space-y-3 text-lg">
+                            <div class="flex justify-between"><span>Final Participants:</span><span id="finalParticipants" class="font-bold">0</span></div>
+                            <div class="flex justify-between"><span>Total GMV:</span><span id="finalGmv" class="font-bold">$0.00</span></div>
+                            <div class="flex justify-between text-teal-300"><span>Final YouTube Revenue:</span><span id="finalRevenue" class="font-bold">$0.00</span></div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex flex-col space-y-2">
+                        <button id="startAuction" class="w-full text-white font-bold py-3 px-4 rounded-lg btn-primary text-lg">Start Simulation</button>
+                        <button id="resetAuction" class="w-full text-white font-bold py-2 px-4 rounded-lg btn-secondary">Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const elements = {
+            startPrice: document.getElementById('startPrice'), minPrice: document.getElementById('minPrice'),
+            participantGoal: document.getElementById('participantGoal'), auctionDuration: document.getElementById('auctionDuration'),
+            platformFee: document.getElementById('platformFee'), platformFeeValue: document.getElementById('platformFeeValue'),
+            startAuction: document.getElementById('startAuction'), resetAuction: document.getElementById('resetAuction'),
+            joinAuction: document.getElementById('joinAuction'), currentParticipants: document.getElementById('currentParticipants'),
+            currentPrice: document.getElementById('currentPrice'), platformRevenue: document.getElementById('platformRevenue'),
+            timer: document.getElementById('timer'), auctionStatus: document.getElementById('auctionStatus'),
+            finalSaleMessage: document.getElementById('finalSaleMessage'), finalParticipants: document.getElementById('finalParticipants'),
+            finalGmv: document.getElementById('finalGmv'), finalRevenue: document.getElementById('finalRevenue'),
+            mainChartCtx: document.getElementById('mainChart').getContext('2d'),
+        };
+        let mainChart;
+        let auctionState = {};
+        const initialState = {
+            running: false, goalMet: false,
+            startPrice: 100, minPrice: 20, participantGoal: 100, duration: 120, platformFee: 5,
+            currentParticipants: 0, timeLeft: 120,
+            timerInterval: null, participantInterval: null,
+        };
+        const formatCurrency = (value) => `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+        function calculatePrice(participants, startPrice, minPrice, goal) {
+            if (participants >= goal) return minPrice;
+            if (goal <= 0) return startPrice;
+            const progress = Math.min(participants / goal, 1);
+            return minPrice + (startPrice - minPrice) * Math.pow(1 - progress, 3);
+        }
+        
+        function updateDisplay() {
+            const currentPrice = calculatePrice(auctionState.currentParticipants, auctionState.startPrice, auctionState.minPrice, auctionState.participantGoal);
+            const currentGmv = auctionState.currentParticipants * currentPrice;
+            const currentRevenue = currentGmv * (auctionState.platformFee / 100);
+
+            elements.currentParticipants.textContent = auctionState.currentParticipants.toLocaleString();
+            elements.currentPrice.textContent = formatCurrency(currentPrice);
+            elements.platformRevenue.textContent = formatCurrency(currentRevenue);
+            
+            if (mainChart) {
+                const priceDataset = mainChart.data.datasets.find(d => d.yAxisID === 'yPrice');
+                const revenueDataset = mainChart.data.datasets.find(d => d.yAxisID === 'yRevenue');
+                priceDataset.data.push({ x: auctionState.currentParticipants, y: currentPrice });
+                revenueDataset.data.push({ x: auctionState.currentParticipants, y: currentRevenue });
+                mainChart.update('none');
+            }
+        }
+
+        function createChart() {
+            if (mainChart) mainChart.destroy();
+            mainChart = new Chart(elements.mainChartCtx, {
+                type: 'line', data: { datasets: [
+                    { label: 'Current Price', yAxisID: 'yPrice', borderColor: '#3b82f6', tension: 0.1, pointRadius: 0, data: [] },
+                    { label: 'Platform Revenue', yAxisID: 'yRevenue', borderColor: '#14b8a6', backgroundColor: 'rgba(20, 184, 166, 0.1)', fill: true, tension: 0.1, pointRadius: 0, data: [] }
+                ]},
+                options: { responsive: true, maintainAspectRatio: false, scales: {
+                    x: { type: 'linear', title: { display: true, text: 'Participants', color: '#9ca3af' }, ticks: { color: '#9ca3af' }, grid: { color: '#374151' } },
+                    yPrice: { type: 'linear', position: 'left', title: { display: true, text: 'Price ($)', color: '#9ca3af' }, ticks: { color: '#9ca3af', callback: v => formatCurrency(v) }, grid: { drawOnChartArea: false } },
+                    yRevenue: { type: 'linear', position: 'right', title: { display: true, text: 'Revenue ($)', color: '#9ca3af' }, ticks: { color: '#9ca3af', callback: v => formatCurrency(v) }, grid: { color: '#374151' } }
+                }, plugins: { legend: { labels: { color: '#d1d5db' } } } }
+            });
+        }
+
+        function handleStartAuction() {
+            if (auctionState.running) return;
+            resetState(false);
+            auctionState.running = true;
+            Object.assign(auctionState, {
+                startPrice: Number(elements.startPrice.value), minPrice: Number(elements.minPrice.value),
+                participantGoal: Number(elements.participantGoal.value), duration: Number(elements.auctionDuration.value),
+                platformFee: Number(elements.platformFee.value), timeLeft: Number(elements.auctionDuration.value)
+            });
+            toggleControls(true);
+            elements.auctionStatus.textContent = 'Simulation in Progress...';
+            elements.finalSaleMessage.classList.add('hidden');
+            createChart(); updateDisplay(); startTimer(); simulateParticipants();
+        }
+
+        function endAuction(reason) {
+            clearInterval(auctionState.timerInterval);
+            clearTimeout(auctionState.participantInterval);
+            auctionState.running = false;
+            toggleControls(false);
+            elements.auctionStatus.textContent = `Ended: ${reason}`;
+            elements.finalSaleMessage.classList.add('hidden');
+            
+            const finalPrice = calculatePrice(auctionState.currentParticipants, auctionState.startPrice, auctionState.minPrice, auctionState.participantGoal);
+            const finalGmv = auctionState.currentParticipants * finalPrice;
+            const finalRevenue = finalGmv * (auctionState.platformFee / 100);
+
+            elements.finalParticipants.textContent = `${auctionState.currentParticipants.toLocaleString()}`;
+            elements.finalGmv.textContent = formatCurrency(finalGmv);
+            elements.finalRevenue.textContent = formatCurrency(finalRevenue);
+        }
+
+        function startTimer() {
+            auctionState.timerInterval = setInterval(() => {
+                auctionState.timeLeft--;
+                if (auctionState.timeLeft < 0) { auctionState.timeLeft = 0; }
+                elements.timer.textContent = `${auctionState.timeLeft}s`;
+                if (auctionState.timeLeft <= 0) { endAuction("Time's Up"); }
+            }, 1000);
+        }
+
+        function simulateParticipants() {
+            if (!auctionState.running) return;
+            const randomInterval = Math.random() * 400 + 50;
+            auctionState.participantInterval = setTimeout(() => {
+                handleJoinAuction();
+                simulateParticipants();
+            }, randomInterval);
+        }
+        
+        function handleJoinAuction() {
+            if (!auctionState.running) return;
+            auctionState.currentParticipants++;
+            
+            if (!auctionState.goalMet && auctionState.currentParticipants >= auctionState.participantGoal) {
+                auctionState.goalMet = true;
+                elements.auctionStatus.textContent = 'Goal Met! Final Sale in Progress!';
+                elements.finalSaleMessage.textContent = `Lowest price reached! You can keep purchasing at this price until the auction ends!`;
+                elements.finalSaleMessage.classList.remove('hidden');
+            }
+            updateDisplay();
+        }
+        
+        function resetState(fullReset = true) {
+            clearInterval(auctionState.timerInterval);
+            clearTimeout(auctionState.participantInterval);
+            auctionState = { ...initialState };
+            if (fullReset) {
+                Object.keys(initialState).forEach(key => {
+                     if (elements[key] && typeof elements[key].value !== 'undefined') {
+                        elements[key].value = initialState[key];
+                    }
+                });
+            }
+            auctionState.platformFee = Number(elements.platformFee.value);
+            auctionState.timeLeft = Number(elements.auctionDuration.value);
+            toggleControls(false);
+            elements.auctionStatus.textContent = 'Waiting...';
+            elements.finalSaleMessage.classList.add('hidden');
+            elements.finalParticipants.textContent = `0`;
+            elements.finalGmv.textContent = formatCurrency(0);
+            elements.finalRevenue.textContent = formatCurrency(0);
+            elements.platformFeeValue.textContent = `${auctionState.platformFee.toFixed(1)}%`;
+            updateDisplay(); createChart();
+        }
+        
+        function toggleControls(isRunning) {
+            elements.startAuction.disabled = isRunning;
+            elements.joinAuction.disabled = !isRunning;
+            [elements.startPrice, elements.minPrice, elements.participantGoal, elements.auctionDuration, elements.platformFee].forEach(el => el.disabled = isRunning);
+        }
+
+        function initialize() {
+            elements.startAuction.addEventListener('click', handleStartAuction);
+            elements.resetAuction.addEventListener('click', () => resetState(true));
+            elements.joinAuction.addEventListener('click', handleJoinAuction);
+            elements.platformFee.addEventListener('input', (e) => {
+                 elements.platformFeeValue.textContent = `${Number(e.target.value).toFixed(1)}%`;
+            });
+            resetState();
+        }
+        window.onload = initialize;
+    </script>
+</body>
+</html>
+
